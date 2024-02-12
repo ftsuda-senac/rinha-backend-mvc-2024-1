@@ -1,0 +1,44 @@
+version: "3.5"
+
+services:
+  db:
+    image: postgres:latest
+    hostname: db
+    environment:
+      - POSTGRES_DB=rinha2
+      - POSTGRES_USER=rinha_user
+      - POSTGRES_PASSWORD=rinha_pwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - ${HOME}/projetos/docker-data/pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d rinha2 -U rinha_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    ulimits:
+      nproc: 1000000
+      nofile:
+        soft: 1000000
+        hard: 1000000
+      
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "teste@email.com"
+      PGADMIN_DEFAULT_PASSWORD: "Abcd@1234"
+      PGADMIN_LISTEN_PORT: 80
+    user: "$UID:$GID" # Ver https://stackoverflow.com/questions/64781245/permission-denied-var-lib-pgadmin-sessions-in-docker
+    ports:
+      - "15432:80"
+    volumes:
+      - ${HOME}/projetos/docker-data/pgadmin:/var/lib/pgadmin
+    depends_on:
+      - db
+
+networks: 
+  default:
+    driver: bridge
+    name: rinhanetdev
